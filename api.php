@@ -247,6 +247,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
   header('Content-Type: application/json');
 
   if ($action === 'admin_login') {
+    if (!rateLimitAllow($db, 'admin_login', 5, 300)) {
+      sendJson(['ok' => false, 'error' => 'Too many login attempts. Try again in a few minutes.']);
+    }
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     if ($username === '' || $password === '') {
@@ -325,6 +328,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
   }
 
   if ($action === 'auth_password_login') {
+    if (!rateLimitAllow($db, 'auth_password_login', 8, 300)) {
+      sendJson(['ok' => false, 'error' => 'Too many attempts. Try again in a few minutes.']);
+    }
     $email = normalizeEmail($_POST['email'] ?? '');
     $password = $_POST['signin_password'] ?? '';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $password === '') {
@@ -349,6 +355,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
   }
   
   if ($action === 'auth_request_otp') {
+    if (!rateLimitAllow($db, 'auth_request_otp', 3, 600)) {
+      sendJson(['ok' => false, 'error' => 'Too many OTP requests. Try again in a few minutes.']);
+    }
     $mode = ($_POST['mode'] ?? 'signup') === 'signin' ? 'signin' : 'signup';
     $name = trim($_POST['name'] ?? '');
     $email = normalizeEmail($_POST['email'] ?? '');
@@ -389,6 +398,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
   }
 
   if ($action === 'auth_verify_otp') {
+    if (!rateLimitAllow($db, 'auth_verify_otp', 8, 300)) {
+      sendJson(['ok' => false, 'error' => 'Too many attempts. Try again in a few minutes.']);
+    }
     $email = normalizeEmail($_SESSION['pending_auth_email'] ?? '');
     $code = trim($_POST['otp'] ?? '');
     if ($email === '' || $code === '') sendJson(['ok' => false, 'error' => 'OTP is required.']);

@@ -88,4 +88,25 @@ function getBaseSizes($db, $activeOnly = false) {
 function getBouquets($db) { return $db->query("SELECT * FROM bouquets ORDER BY id")->fetchAll(); }
 function getOrders($db) { return $db->query("SELECT * FROM orders ORDER BY id DESC")->fetchAll(); }
 function getReviews($db) { return $db->query("SELECT * FROM reviews WHERE approved = 1 ORDER BY id DESC")->fetchAll(); }
+
+function rateLimitAllow($db, $bucket, $maxAttempts, $windowSeconds) {
+  $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+  $key = $bucket . ':' . $ip;
+  $now = time();
+  $stmt = $db->prepare("SELECT count, window_start FROM rate_limits WHERE rl_key=?");
+  $stmt->execute([$key]);
+  $row = $stmt->fetch();
+
+  if (!$row || ($now - $row['window_start']) > $windowSeconds) {
+    $db->prepare("INSERT INTO rate_limits (rl_key, count, window_start) VALUES (?, 1, ?)
+      ON CONFLICT(rl_key) DO UPDATE SET count=1, window_start=excluded.window_start")
+      ->execute([$key, $now]);
+    return true;
+  }
+
+  if ($row['count'] >= $maxAttempts) return false;
+
+  $db->prepare("UPDATE rate_limits SET count=count+1 WHERE rl_key=?")->execute([$key]);
+  return true;
+}
 ?>

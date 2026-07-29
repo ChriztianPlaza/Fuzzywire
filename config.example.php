@@ -51,6 +51,8 @@ define('SMTP_FROM_NAME', 'Crafty Fuzzy');
  $db->exec("CREATE TABLE IF NOT EXISTS admins (
   id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT,
   created_at TEXT, updated_at TEXT)");
+ $db->exec("CREATE TABLE IF NOT EXISTS rate_limits (
+  rl_key TEXT PRIMARY KEY, count INTEGER DEFAULT 1, window_start INTEGER)");
 
 // Safely add image columns if they don't exist
 try { $db->exec("ALTER TABLE flowers ADD COLUMN image TEXT"); } catch (Exception $e) {}
