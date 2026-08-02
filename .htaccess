@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS (InfinityFree terminates TLS upstream, so trust the forwarded header)
+  RewriteCond %{HTTP:X-Forwarded-Proto} =http [OR]
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+</IfModule>
+
+# Don't list directory contents
+Options -Indexes
+
+# Keep dotfiles and the example config out of the browser
+<FilesMatch "^\.|(^config\.example\.php$)">
+  Require all denied
+</FilesMatch>
