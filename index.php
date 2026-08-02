@@ -12,6 +12,14 @@ require_once 'helpers.php';
  $pageTitles = ['home' => 'Crafty Fuzzy', 'bouquets' => 'Bouquets | Crafty Fuzzy', 'customize' => 'Customize | Crafty Fuzzy', 'about' => 'About & Care | Crafty Fuzzy'];
  $pageTitle = $pageTitles[$page] ?? 'Crafty Fuzzy';
 
+ $customizeEnabled = isCustomizeEnabled($db);
+ // Send visitors away from the builder when an admin has turned it off,
+ // so a bookmarked or shared URL can't reach it either.
+ if ($page === 'customize' && !$customizeEnabled) {
+   $page = 'bouquets';
+   $pageTitle = $pageTitles['bouquets'];
+ }
+
 // Fetch only what each page actually needs
  $flowers = getFlowers($db);
  $builderFlowers = getFlowers($db, true);

@@ -1539,6 +1539,14 @@ function deleteFlower(id) {
   fetch('api.php', { method: 'POST', body: fd }).then(handleAdminSave).catch(() => alert('Could not delete this stem.'));
 }
 
+function toggleCustomizeFeature() {
+  const fd = new FormData();
+  fd.append('action', 'admin_toggle_customize');
+  fetch('api.php', { method: 'POST', body: fd })
+    .then(handleAdminSave)
+    .catch(() => alert('Could not update the builder setting.'));
+}
+
 function toggleBuilder(id) {
   const fd = new FormData();
   fd.append('action', 'admin_toggle_builder');

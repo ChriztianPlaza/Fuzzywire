@@ -10,6 +10,28 @@ if (!defined('FUZZYWIRE')) {
 </div>
 
 <div class="admin-section">
+  <div class="builder-master-toggle">
+    <div>
+      <h2>Custom Bouquet Builder</h2>
+      <div class="admin-section-sub" style="margin-bottom:0">
+        <?php if ($customizeEnabled): ?>
+          Customers can build their own bouquets. Turn this off to sell only ready-made arrangements.
+        <?php else: ?>
+          Turned off &mdash; the Customize page and &ldquo;Build Your Own&rdquo; button are hidden from customers.
+        <?php endif; ?>
+      </div>
+    </div>
+    <div class="builder-master-toggle-control">
+      <span class="builder-status <?= $customizeEnabled ? 'on' : 'off' ?>"><?= $customizeEnabled ? 'On' : 'Off' ?></span>
+      <label class="toggle">
+        <input type="checkbox" onchange="toggleCustomizeFeature()" <?= $customizeEnabled ? 'checked' : '' ?>>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="admin-section">
   <div class="admin-head" style="margin-bottom:16px">
     <div><h2>Base Sizes</h2><div class="admin-section-sub">Set the minimum stem spend required for each size tier</div></div>
     <button class="btn-admin" onclick="openBaseSizeModal()">+ Add Base Size</button>

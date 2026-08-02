@@ -89,6 +89,23 @@ function getBouquets($db) { return $db->query("SELECT * FROM bouquets ORDER BY i
 function getOrders($db) { return $db->query("SELECT * FROM orders ORDER BY id DESC")->fetchAll(); }
 function getReviews($db) { return $db->query("SELECT * FROM reviews WHERE approved = 1 ORDER BY id DESC")->fetchAll(); }
 
+function getSetting($db, $key, $default = '') {
+  $stmt = $db->prepare("SELECT value FROM app_meta WHERE key=?");
+  $stmt->execute([$key]);
+  $value = $stmt->fetchColumn();
+  return $value === false ? $default : $value;
+}
+
+function setSetting($db, $key, $value) {
+  $stmt = $db->prepare("INSERT OR REPLACE INTO app_meta (key, value) VALUES (?, ?)");
+  $stmt->execute([$key, $value]);
+}
+
+// Builder is on unless an admin has explicitly switched it off.
+function isCustomizeEnabled($db) {
+  return getSetting($db, 'customize_enabled', '1') !== '0';
+}
+
 function rateLimitAllow($db, $bucket, $maxAttempts, $windowSeconds) {
   $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
   $key = $bucket . ':' . $ip;

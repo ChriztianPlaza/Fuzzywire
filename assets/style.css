@@ -427,6 +427,12 @@ body.photo-lightbox-open{overflow:hidden}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(58,53,48,0.08)}
 
 .admin-section{margin-bottom:40px}
+.builder-master-toggle{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;background:var(--ivory);border-radius:8px;padding:22px 24px;box-shadow:var(--shadow-soft)}
+.builder-master-toggle h2{font-size:1.2rem;font-family:'Fraunces',serif;margin-bottom:6px;font-weight:400}
+.builder-master-toggle-control{display:flex;align-items:center;gap:12px}
+.builder-status{font-size:0.74rem;letter-spacing:0.14em;text-transform:uppercase;font-weight:500;padding:4px 10px;border-radius:12px}
+.builder-status.on{color:var(--sage-deep);background:rgba(168,181,160,0.18)}
+.builder-status.off{color:var(--stone-deep);background:rgba(154,150,140,0.18)}
 .admin-section h2{font-size:1.2rem;font-family:'Fraunces',serif;margin-bottom:6px;font-weight:400}
 .admin-section .admin-section-sub{font-size:0.85rem;color:var(--ink-soft);margin-bottom:20px}
 

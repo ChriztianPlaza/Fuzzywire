@@ -467,6 +467,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
     $qty = max(1, intval($_POST['quantity'] ?? 1));
 
     if ($itemType === 'custom') {
+      if (!isCustomizeEnabled($db)) {
+        sendJson(['ok' => false, 'error' => 'Custom bouquets are not available right now.']);
+      }
       $data = json_decode($itemData, true);
       if (!is_array($data)) sendJson(['ok' => false, 'error' => 'Invalid custom bouquet data.']);
       $minimum = isset($data['base_price']) ? floatval($data['base_price']) : 0;
@@ -649,6 +652,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
     exit;
   }
   
+  if ($action === 'admin_toggle_customize') {
+    $enabled = isCustomizeEnabled($db);
+    setSetting($db, 'customize_enabled', $enabled ? '0' : '1');
+    sendJson(['ok' => true, 'enabled' => !$enabled]);
+  }
+
   if ($action === 'admin_toggle_builder') {
     $stmt = $db->prepare("UPDATE flowers SET in_builder = 1 - in_builder WHERE id=?");
     $stmt->execute([$_POST['id']]);

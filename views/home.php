@@ -7,7 +7,9 @@
         <p class="lede">Crafty Fuzzy creates handmade fuzzy flower arrangements with soft textures and calm palettes. No clutter, just flowers.</p>
         <div class="hero-ctas">
           <a href="?page=bouquets" class="btn btn-primary">Shop Bouquets</a>
+          <?php if (!empty($customizeEnabled)): ?>
           <a href="?page=customize" class="btn btn-ghost">Build Your Own</a>
+          <?php endif; ?>
         </div>
       </div>
       <div class="hero-visual">

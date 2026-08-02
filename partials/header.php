@@ -20,7 +20,9 @@
     <nav class="nav-main">
 <a href="?page=home" class="<?= $page === 'home' ? 'active' : '' ?>">Home</a>
 <a href="?page=bouquets" class="<?= $page === 'bouquets' ? 'active' : '' ?>">Bouquets</a>
+<?php if (!empty($customizeEnabled)): ?>
 <a href="?page=customize" class="<?= $page === 'customize' ? 'active' : '' ?>">Customize</a>
+<?php endif; ?>
 <a href="?page=about" class="<?= $page === 'about' ? 'active' : '' ?>">About & Care</a>
 <a href="?page=home#reviews" class="">Reviews</a>
     </nav>
@@ -53,7 +55,9 @@
 <nav class="nav-mobile" id="navMobile" aria-label="Mobile navigation">
 <a href="?page=home" class="<?= $page === 'home' ? 'active' : '' ?>">Home</a>
 <a href="?page=bouquets" class="<?= $page === 'bouquets' ? 'active' : '' ?>">Bouquets</a>
+<?php if (!empty($customizeEnabled)): ?>
 <a href="?page=customize" class="<?= $page === 'customize' ? 'active' : '' ?>">Customize</a>
+<?php endif; ?>
 <a href="?page=about" class="<?= $page === 'about' ? 'active' : '' ?>">About & Care</a>
 <a href="?page=home#reviews">Reviews</a>
 </nav>
