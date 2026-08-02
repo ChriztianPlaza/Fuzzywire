@@ -1772,10 +1772,21 @@ function reinitPageScripts(page) {
   if (page === 'bouquets') initBouquetFilters();
 }
 
+function setNavLoading(on) {
+  let bar = document.getElementById('navProgress');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'navProgress';
+    document.body.appendChild(bar);
+  }
+  bar.classList.toggle('active', on);
+}
+
 async function navigateTo(url, push) {
   const content = document.getElementById('page-content');
   if (!content) { window.location.href = url; return; }
 
+  setNavLoading(true);
   let res, html;
   try {
     res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
@@ -1783,6 +1794,8 @@ async function navigateTo(url, push) {
   } catch (e) {
     window.location.href = url;
     return;
+  } finally {
+    setNavLoading(false);
   }
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -1828,6 +1841,9 @@ function initSpaNav() {
     const href = a.getAttribute('href') || '';
     if (!href.startsWith('?page=')) return;
     if (href.startsWith('?page=admin')) return;
+    // Customize carries a large inline dataset; let the browser do a normal
+    // load so its own progress indicator shows instead of a silent stall.
+    if (href.startsWith('?page=customize')) return;
     if (a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     navigateTo(a.href, true);

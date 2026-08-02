@@ -1,6 +1,19 @@
 <?php
+// Harden session cookies before the session starts
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+  || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+session_set_cookie_params([
+  'httponly' => true,
+  'samesite' => 'Lax',
+  'secure'   => $isHttps,
+]);
 session_start();
 error_reporting(E_ERROR | E_PARSE);
+ini_set('display_errors', '0');
+
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
 define('GCASH_QR_IMAGE', 'assets/gcash-qr.png');
 define('SHOP_EMAIL_FROM', 'no-reply@fuzzyotp.local');

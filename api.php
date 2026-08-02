@@ -10,18 +10,12 @@ function sendJson($payload) {
 function parsePostedColorOptions($json, $filePrefix = 'color_image_') {
   $options = json_decode($json ?? '[]', true);
   if (!is_array($options)) return [];
-  $uploadDir = __DIR__ . '/uploads/';
-  if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
   $result = [];
   foreach ($options as $index => $opt) {
     if (empty($opt['name']) || empty($opt['color'])) continue;
     $image = $opt['image'] ?? '';
-    $fileKey = $filePrefix . $index;
-    if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
-      $filename = uniqid() . '_' . basename($_FILES[$fileKey]['name']);
-      move_uploaded_file($_FILES[$fileKey]['tmp_name'], $uploadDir . $filename);
-      $image = 'uploads/' . $filename;
-    }
+    $uploaded = saveUploadedImage($filePrefix . $index);
+    if ($uploaded !== '') $image = $uploaded;
     $result[] = ['name' => $opt['name'], 'color' => $opt['color'], 'image' => $image];
   }
   return $result;
@@ -31,6 +25,24 @@ function requireAdminSession() {
   if (empty($_SESSION['admin_user'])) {
     sendJson(['ok' => false, 'admin_login_required' => true, 'error' => 'Please sign in as admin first.']);
   }
+}
+
+// Only ever writes an image file with a safe, whitelisted extension.
+// Returns the stored relative path, or '' if the upload was rejected.
+function saveUploadedImage($fileKey, $subDir = '') {
+  if (!isset($_FILES[$fileKey]) || $_FILES[$fileKey]['error'] !== UPLOAD_ERR_OK) return '';
+  $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
+  $ext = strtolower(pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
+  if (!in_array($ext, $allowed, true)) return '';
+
+  $check = @getimagesize($_FILES[$fileKey]['tmp_name']);
+  if ($check === false) return '';
+
+  $uploadDir = __DIR__ . '/uploads/' . $subDir;
+  if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+  $filename = uniqid('img_', true) . '.' . $ext;
+  if (!move_uploaded_file($_FILES[$fileKey]['tmp_name'], $uploadDir . $filename)) return '';
+  return 'uploads/' . $subDir . $filename;
 }
 
 function normalizeEmail($email) {
@@ -278,6 +290,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
 
   if ($action === 'admin_change_password') {
     requireAdminSession();
+    if (!rateLimitAllow($db, 'admin_change_password', 5, 300)) {
+      sendJson(['ok' => false, 'error' => 'Too many attempts. Try again in a few minutes.']);
+    }
     $current = $_POST['current_password'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['password_confirm'] ?? '';
@@ -559,13 +574,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
 
     $photoPath = '';
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-      $uploadDir = __DIR__ . '/uploads/reviews/';
-      if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-      $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
-      if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) sendJson(['ok' => false, 'error' => 'Photo must be an image.']);
-      $filename = uniqid('review_', true) . '.' . $ext;
-      move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . $filename);
-      $photoPath = 'uploads/reviews/' . $filename;
+      $photoPath = saveUploadedImage('photo', 'reviews/');
+      if ($photoPath === '') sendJson(['ok' => false, 'error' => 'Photo must be a valid image.']);
     }
     $stmt = $db->prepare("INSERT INTO reviews (order_id, customer_id, customer_name, rating, comment, photo, approved, created_at) VALUES (?,?,?,?,?,?,1,?)");
     $stmt->execute([$orderId, $_SESSION['customer_user']['id'], $_SESSION['customer_user']['name'], $rating, $comment, $photoPath, date('Y-m-d H:i:s')]);
@@ -596,13 +606,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
     $colorOptions = json_encode($parsedOptions);
     
     $imagePath = $_POST['existing_image'] ?? '';
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/uploads/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-        $filename = uniqid() . '_' . basename($_FILES['image']['name']);
-        move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename);
-        $imagePath = 'uploads/' . $filename;
-    }
+    $uploadedImage = saveUploadedImage('image');
+    if ($uploadedImage !== '') $imagePath = $uploadedImage;
 
     if ($id) {
       $stmt = $db->prepare("UPDATE flowers SET name=?, price_per_stem=?, color=?, shape=?, category=?, stock_count=?, in_builder=?, in_stock=?, best_seller=?, image=?, color_options=? WHERE id=?");
@@ -713,13 +718,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
     else $range = '1001-3000';
     
     $imagePath = $_POST['existing_image'] ?? '';
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/uploads/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-        $filename = uniqid() . '_' . basename($_FILES['image']['name']);
-        move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename);
-        $imagePath = 'uploads/' . $filename;
-    }
+    $uploadedImage = saveUploadedImage('image');
+    if ($uploadedImage !== '') $imagePath = $uploadedImage;
 
     if ($id) {
       $stmt = $db->prepare("UPDATE bouquets SET name=?, description=?, price=?, occasion=?, color_theme=?, price_range=?, components=?, featured=?, image=? WHERE id=?");

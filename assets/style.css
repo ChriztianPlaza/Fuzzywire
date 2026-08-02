@@ -91,6 +91,11 @@ img,svg{display:block;max-width:100%}
 .signin-method button.active{background:rgba(184,119,92,0.12);border-color:var(--terracotta);color:var(--terracotta)}
 @media (max-width:880px){.nav-main{display:none}}
 
+/* === NAV PROGRESS BAR === */
+#navProgress{position:fixed;top:0;left:0;height:2px;width:0;z-index:200;background:var(--terracotta);opacity:0;transition:opacity 0.2s}
+#navProgress.active{opacity:1;animation:fz-progress 1.4s ease-out forwards}
+@keyframes fz-progress{0%{width:0}40%{width:65%}100%{width:92%}}
+
 /* === MOBILE NAV === */
 .nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;border-radius:10px;transition:background 0.2s}
 .nav-toggle span{display:block;width:20px;height:1.5px;background:var(--ink);margin:0 auto;transition:transform 0.3s ease,opacity 0.2s ease}

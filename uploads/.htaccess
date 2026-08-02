@@ -1,0 +1,8 @@
+# Never execute uploaded files as code — serve them as inert static files only
+php_flag engine off
+AddType text/plain .php .php3 .php4 .php5 .php7 .phtml .phps .pl .py .cgi .sh .htaccess
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule \.(php|php3|php4|php5|php7|phtml|phps|pl|py|cgi|sh)$ - [F,L,NC]
+</IfModule>
