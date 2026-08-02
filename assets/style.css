@@ -1,3 +1,9 @@
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:fz-fade-out 0.18s ease both}
+::view-transition-new(root){animation:fz-fade-in 0.22s ease both}
+@keyframes fz-fade-out{to{opacity:0}}
+@keyframes fz-fade-in{from{opacity:0}}
+
 :root{
   --ivory:#F5EFE5; --ivory-warm:#EFE6D4; --ivory-deep:#E8DCC4;
   --sage:#A8B5A0; --sage-light:#C5CDB8; --sage-deep:#7A8870;
