@@ -102,6 +102,38 @@ function closePhotoPreview(event) {
 }
 document.addEventListener('DOMContentLoaded', initCustomerState);
 
+// === MOBILE NAV ===
+function toggleMobileNav() {
+  const nav = document.getElementById('navMobile');
+  const overlay = document.getElementById('navMobileOverlay');
+  const toggle = document.getElementById('navToggle');
+  if (!nav) return;
+  const opening = !nav.classList.contains('open');
+  nav.classList.toggle('open', opening);
+  overlay.classList.toggle('open', opening);
+  toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  document.body.style.overflow = opening ? 'hidden' : '';
+}
+function closeMobileNav() {
+  const nav = document.getElementById('navMobile');
+  const overlay = document.getElementById('navMobileOverlay');
+  const toggle = document.getElementById('navToggle');
+  if (!nav) return;
+  nav.classList.remove('open');
+  overlay.classList.remove('open');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('#navMobile a')) closeMobileNav();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeMobileNav();
+});
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 880) closeMobileNav();
+});
+
 function initBouquetFilters() {
   const grid = document.getElementById('bouquetGrid');
   if (!grid) return;
@@ -1764,7 +1796,7 @@ async function navigateTo(url, push) {
     runInjectedScripts(content);
     reinitPageScripts(content.dataset.page);
 
-    document.querySelectorAll('.nav-main a').forEach(a => {
+    document.querySelectorAll('.nav-main a, .nav-mobile a').forEach(a => {
       const href = a.getAttribute('href') || '';
       a.classList.toggle('active', href === '?page=' + content.dataset.page);
     });

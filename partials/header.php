@@ -26,6 +26,9 @@
     </nav>
     <div class="header-actions">
       <?php $signedInCustomer = $_SESSION['customer_user'] ?? null; ?>
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navMobile" onclick="toggleMobileNav()">
+        <span></span><span></span><span></span>
+      </button>
       <button class="cart-btn auth-btn" id="loginBtn" onclick="openAuthModal()" <?= $signedInCustomer ? 'hidden' : '' ?>>Sign in / Sign up</button>
       <div class="auth-menu" id="authMenu" <?= $signedInCustomer ? '' : 'hidden' ?>>
         <button class="auth-user" id="authUser" type="button" onclick="toggleAuthMenu()"><?= htmlspecialchars($signedInCustomer['name'] ?? $signedInCustomer['email'] ?? 'Account') ?></button>
@@ -45,6 +48,15 @@
     </div>
   </div>
 </header>
+
+<div class="nav-mobile-overlay" id="navMobileOverlay" onclick="closeMobileNav()"></div>
+<nav class="nav-mobile" id="navMobile" aria-label="Mobile navigation">
+<a href="?page=home" class="<?= $page === 'home' ? 'active' : '' ?>">Home</a>
+<a href="?page=bouquets" class="<?= $page === 'bouquets' ? 'active' : '' ?>">Bouquets</a>
+<a href="?page=customize" class="<?= $page === 'customize' ? 'active' : '' ?>">Customize</a>
+<a href="?page=about" class="<?= $page === 'about' ? 'active' : '' ?>">About & Care</a>
+<a href="?page=home#reviews">Reviews</a>
+</nav>
 
 <div class="toast-wrap" id="toastWrap"></div>
 
