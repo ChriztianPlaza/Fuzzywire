@@ -1,8 +1,8 @@
-@view-transition{navigation:auto}
-::view-transition-old(root){animation:fz-fade-out 0.18s ease both}
-::view-transition-new(root){animation:fz-fade-in 0.22s ease both}
-@keyframes fz-fade-out{to{opacity:0}}
-@keyframes fz-fade-in{from{opacity:0}}
+#page-content{view-transition-name:page-content}
+::view-transition-old(page-content){animation:fz-slide-out 0.28s cubic-bezier(.4,0,.2,1) both}
+::view-transition-new(page-content){animation:fz-slide-in 0.32s cubic-bezier(.4,0,.2,1) both}
+@keyframes fz-slide-out{to{opacity:0;transform:translateX(-24px)}}
+@keyframes fz-slide-in{from{opacity:0;transform:translateX(24px)}}
 
 :root{
   --ivory:#F5EFE5; --ivory-warm:#EFE6D4; --ivory-deep:#E8DCC4;

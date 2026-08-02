@@ -572,6 +572,7 @@ function submitCheckout(e) {
 // === HERO CROSSFADE ===
 let heroInterval;
 function startHero() {
+  if (heroInterval) clearInterval(heroInterval);
   const slides = document.querySelectorAll('.hero-slide');
   if (slides.length === 0) return;
   let idx = 0;
@@ -1724,3 +1725,84 @@ function deleteOrder(id) {
   fd.append('id', id);
   fetch('api.php', { method: 'POST', body: fd }).then(handleAdminSave).catch(() => alert('Could not delete this order.'));
 }
+
+// === SPA-STYLE PAGE NAV (public site only) ===
+function runInjectedScripts(container) {
+  container.querySelectorAll('script').forEach(old => {
+    const s = document.createElement('script');
+    s.textContent = '(function(){\n' + old.textContent + '\n})();';
+    old.replaceWith(s);
+  });
+}
+
+function reinitPageScripts(page) {
+  if (page === 'home') startHero();
+  if (page === 'bouquets') initBouquetFilters();
+}
+
+async function navigateTo(url, push) {
+  const content = document.getElementById('page-content');
+  if (!content) { window.location.href = url; return; }
+
+  let res, html;
+  try {
+    res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
+    html = await res.text();
+  } catch (e) {
+    window.location.href = url;
+    return;
+  }
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const newContent = doc.getElementById('page-content');
+  if (!newContent) { window.location.href = url; return; }
+
+  const apply = () => {
+    content.innerHTML = newContent.innerHTML;
+    content.dataset.page = newContent.dataset.page || '';
+    document.title = doc.title;
+    runInjectedScripts(content);
+    reinitPageScripts(content.dataset.page);
+
+    document.querySelectorAll('.nav-main a').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      a.classList.toggle('active', href === '?page=' + content.dataset.page);
+    });
+
+    const hash = url.split('#')[1];
+    if (hash) {
+      const target = document.getElementById(hash);
+      if (target) { target.scrollIntoView({ behavior: 'smooth' }); return; }
+    }
+    window.scrollTo(0, 0);
+  };
+
+  if (document.startViewTransition) {
+    document.startViewTransition(apply);
+  } else {
+    apply();
+  }
+
+  if (push) history.pushState({ fzSpa: true }, '', url);
+}
+
+function initSpaNav() {
+  const content = document.getElementById('page-content');
+  if (!content) return;
+
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (!href.startsWith('?page=')) return;
+    if (href.startsWith('?page=admin')) return;
+    if (a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    navigateTo(a.href, true);
+  });
+
+  window.addEventListener('popstate', () => {
+    navigateTo(window.location.href, false);
+  });
+}
+document.addEventListener('DOMContentLoaded', initSpaNav);

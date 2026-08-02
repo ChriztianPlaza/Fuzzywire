@@ -30,8 +30,10 @@ if ($page === 'admin') {
     include 'partials/admin_footer.php';
 } else {
     include 'partials/header.php';
+    echo '<main id="page-content" data-page="' . htmlspecialchars($page) . '">';
     $viewFile = "views/$page.php";
     if (file_exists($viewFile)) include $viewFile;
+    echo '</main>';
     include 'partials/footer.php';
 }
 ?>

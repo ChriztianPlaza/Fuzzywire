@@ -231,5 +231,9 @@ $builderRibbons = array_values(array_filter($ribbons, fn($r) => $r['in_stock']))
   }, $builderRibbons)) ?>;
   const BASE_SIZES = <?= json_encode(array_map(function($s) { return ['id'=>intval($s['id']), 'name'=>$s['name'], 'description'=>$s['description'], 'price'=>floatval($s['price']), 'icon_size'=>intval($s['icon_size'])]; }, $builderBaseSizes)) ?>;
   
-  document.addEventListener('DOMContentLoaded', () => initBuilder(FLOWERS, WRAPPERS, RIBBONS, BASE_SIZES));
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initBuilder(FLOWERS, WRAPPERS, RIBBONS, BASE_SIZES));
+  } else {
+    initBuilder(FLOWERS, WRAPPERS, RIBBONS, BASE_SIZES);
+  }
 </script>
