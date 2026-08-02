@@ -7,8 +7,12 @@ require_once 'helpers.php';
  $section = $_GET['section'] ?? 'dashboard';
  $allowedAdminSections = ['dashboard', 'inventory', 'customization', 'wrappers', 'ribbons', 'presets', 'orders', 'sales'];
  if (!in_array($section, $allowedAdminSections, true)) $section = 'dashboard';
+ $isAjax = (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch');
 
-// Fetch global data needed for all views
+ $pageTitles = ['home' => 'Crafty Fuzzy', 'bouquets' => 'Bouquets | Crafty Fuzzy', 'customize' => 'Customize | Crafty Fuzzy', 'about' => 'About & Care | Crafty Fuzzy'];
+ $pageTitle = $pageTitles[$page] ?? 'Crafty Fuzzy';
+
+// Fetch only what each page actually needs
  $flowers = getFlowers($db);
  $builderFlowers = getFlowers($db, true);
  $wrappers = getWrappers($db);
@@ -16,10 +20,10 @@ require_once 'helpers.php';
  $baseSizes = getBaseSizes($db);
  $builderBaseSizes = getBaseSizes($db, true);
  $bouquets = getBouquets($db);
- $orders = getOrders($db);
  $reviews = getReviews($db);
 
 if ($page === 'admin') {
+    $orders = getOrders($db);
     if (empty($_SESSION['admin_user'])) {
         include 'views/admin/login.php';
         exit;
@@ -29,11 +33,17 @@ if ($page === 'admin') {
     if (file_exists($viewFile)) include $viewFile;
     include 'partials/admin_footer.php';
 } else {
-    include 'partials/header.php';
+    if (!$isAjax) {
+        include 'partials/header.php';
+    } else {
+        echo '<title>' . htmlspecialchars($pageTitle) . '</title>';
+    }
     echo '<main id="page-content" data-page="' . htmlspecialchars($page) . '">';
     $viewFile = "views/$page.php";
     if (file_exists($viewFile)) include $viewFile;
     echo '</main>';
-    include 'partials/footer.php';
+    if (!$isAjax) {
+        include 'partials/footer.php';
+    }
 }
 ?>
