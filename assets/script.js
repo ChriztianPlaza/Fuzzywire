@@ -302,6 +302,7 @@ function changePassword(e) {
         return;
       }
       document.getElementById('passwordOverlay').classList.remove('show');
+      e.target.reset();
       showToast('Password updated');
     })
     .catch(() => alert('Could not change password.'));

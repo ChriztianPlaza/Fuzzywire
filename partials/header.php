@@ -164,6 +164,10 @@
     <h3>Change password</h3>
     <form id="passwordForm" onsubmit="changePassword(event)">
       <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" name="current_password" autocomplete="current-password" required>
+      </div>
+      <div class="form-group">
         <label>New Password</label>
         <input type="password" name="password" minlength="6" autocomplete="new-password" required>
       </div>

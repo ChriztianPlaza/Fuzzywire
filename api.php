@@ -349,14 +349,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
     if (empty($_SESSION['customer_user'])) {
       sendJson(['ok' => false, 'error' => 'Please sign in first.']);
     }
+    if (!rateLimitAllow($db, 'auth_change_password', 5, 300)) {
+      sendJson(['ok' => false, 'error' => 'Too many attempts. Try again in a few minutes.']);
+    }
+    $current = $_POST['current_password'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['password_confirm'] ?? '';
+    if ($current === '') {
+      sendJson(['ok' => false, 'error' => 'Your current password is required.']);
+    }
     if (strlen($password) < 6) {
       sendJson(['ok' => false, 'error' => 'Password must be at least 6 characters.']);
     }
     if ($password !== $confirm) {
       sendJson(['ok' => false, 'error' => 'Passwords do not match.']);
     }
+
+    // Proving knowledge of the current password stops a hijacked session
+    // from silently taking over the account.
+    $stmt = $db->prepare("SELECT password_hash FROM customers WHERE id=? LIMIT 1");
+    $stmt->execute([$_SESSION['customer_user']['id']]);
+    $existingHash = $stmt->fetchColumn();
+    if (!$existingHash || !password_verify($current, $existingHash)) {
+      sendJson(['ok' => false, 'error' => 'Your current password is incorrect.']);
+    }
+
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $stmt = $db->prepare("UPDATE customers SET password_hash=?, updated_at=? WHERE id=?");
     $stmt->execute([$hash, date('Y-m-d H:i:s'), $_SESSION['customer_user']['id']]);
