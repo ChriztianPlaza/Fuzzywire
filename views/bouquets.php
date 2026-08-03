@@ -42,7 +42,7 @@
               </div>
             <?php endif; ?>
             <span class="card-tag"><?= ucfirst($b['occasion']) ?></span>
-            <button class="quick-add" type="button" onclick="addToCart('premade', '<?= htmlspecialchars(json_encode(['name' => $b['name'], 'price' => $b['price']]), ENT_QUOTES) ?>')">Quick Add</button>
+            <button class="quick-add" type="button" onclick="addToCart('premade', '<?= htmlspecialchars(json_encode(['bouquet_id' => intval($b['id'])]), ENT_QUOTES) ?>')">Quick Add</button>
           </div>
           <div class="card-info">
             <div class="name"><?= htmlspecialchars($b['name']) ?></div>

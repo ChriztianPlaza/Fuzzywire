@@ -49,6 +49,18 @@ function normalizeEmail($email) {
   return strtolower(trim($email));
 }
 
+// Issue a fresh session ID on login so a pre-set ID can't be reused to ride
+// the authenticated session. Cart rows are keyed by session ID, so carry them over.
+function regenerateSessionKeepingCart($db) {
+  $oldSid = session_id();
+  session_regenerate_id(true);
+  $newSid = session_id();
+  if ($oldSid && $newSid && $oldSid !== $newSid) {
+    $move = $db->prepare("UPDATE cart SET session_id=? WHERE session_id=?");
+    $move->execute([$newSid, $oldSid]);
+  }
+}
+
 function isLocalRequest() {
   $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
   return str_contains($host, 'localhost') || str_contains($host, '127.0.0.1') || PHP_SAPI === 'cli';
@@ -150,8 +162,17 @@ function getCartSummary($db) {
     $description = '';
 
     if ($row['item_type'] === 'premade') {
-      $name = $data['name'] ?? 'Premade bouquet';
-      $line = floatval($data['price'] ?? 0) * $qty;
+      // Price always comes from the catalogue, never from stored client data.
+      $bouquetId = intval($data['bouquet_id'] ?? 0);
+      $bouquet = null;
+      if ($bouquetId > 0) {
+        $bStmt = $db->prepare("SELECT name, price FROM bouquets WHERE id=?");
+        $bStmt->execute([$bouquetId]);
+        $bouquet = $bStmt->fetch();
+      }
+      if (!$bouquet) continue; // stale or tampered row — drop it rather than price it
+      $name = $bouquet['name'];
+      $line = floatval($bouquet['price']) * $qty;
       $description = 'Ready-made arrangement';
     } else {
       $size = $data['size'] ?? 'Bouquet';
@@ -359,6 +380,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
       sendJson(['ok' => false, 'error' => 'Invalid email or password.']);
     }
 
+    regenerateSessionKeepingCart($db);
     $_SESSION['customer_user'] = [
       'id' => intval($customer['id']),
       'name' => $customer['name'],
@@ -447,6 +469,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
       $customerId = $db->lastInsertId();
     }
 
+    regenerateSessionKeepingCart($db);
     $_SESSION['customer_user'] = [
       'id' => intval($customerId),
       'name' => $otp['name'],
@@ -465,6 +488,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
     $itemType = $_POST['item_type'] ?? 'premade';
     $itemData = $_POST['item_data'] ?? '{}';
     $qty = max(1, intval($_POST['quantity'] ?? 1));
+
+    if ($itemType === 'premade') {
+      // Never trust a price from the client — resolve it from the catalogue.
+      $data = json_decode($itemData, true);
+      $bouquetId = is_array($data) ? intval($data['bouquet_id'] ?? 0) : 0;
+      if ($bouquetId <= 0) sendJson(['ok' => false, 'error' => 'Invalid bouquet.']);
+      $bStmt = $db->prepare("SELECT id, name, price FROM bouquets WHERE id=?");
+      $bStmt->execute([$bouquetId]);
+      $bouquet = $bStmt->fetch();
+      if (!$bouquet) sendJson(['ok' => false, 'error' => 'That bouquet is no longer available.']);
+      $itemData = json_encode(['bouquet_id' => intval($bouquet['id'])]);
+    }
 
     if ($itemType === 'custom') {
       if (!isCustomizeEnabled($db)) {

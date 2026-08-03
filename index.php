@@ -4,6 +4,11 @@ require_once 'config.php';
 require_once 'helpers.php';
 
  $page = $_GET['page'] ?? 'home';
+ // Whitelist pages: $page is interpolated into an include path below, so any
+ // unvalidated value allows traversal (e.g. ?page=admin/orders rendered the
+ // admin views to unauthenticated visitors).
+ $allowedPages = ['home', 'bouquets', 'customize', 'about', 'admin'];
+ if (!in_array($page, $allowedPages, true)) $page = 'home';
  $section = $_GET['section'] ?? 'dashboard';
  $allowedAdminSections = ['dashboard', 'inventory', 'customization', 'wrappers', 'ribbons', 'presets', 'orders', 'sales'];
  if (!in_array($section, $allowedAdminSections, true)) $section = 'dashboard';
